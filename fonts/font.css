@@ -1,0 +1,57 @@
+@font-face {
+  font-family: 'icomoon';
+  src:  url('icomoon.eot?eds423');
+  src:  url('icomoon.eot?eds423#iefix') format('embedded-opentype'),
+    url('icomoon.ttf?eds423') format('truetype'),
+    url('icomoon.woff?eds423') format('woff'),
+    url('icomoon.svg?eds423#icomoon') format('svg');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icomoon' !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-zoom-out:before {
+  content: "\f00e";
+}
+.icon-zoom-in:before {
+  content: "\f010";
+}
+.icon-preview-setting:before {
+  content: "\f013";
+}
+.icon-print:before {
+  content: "\f02f";
+}
+.icon-generate:before {
+  content: "\f044";
+}
+.icon-setting:before {
+  content: "\f085";
+}
+.icon-document:before {
+  content: "\f0f6";
+}
+.icon-sun:before {
+  content: "\f185";
+}
+.icon-moon:before {
+  content: "\f186";
+}
+.icon-search:before {
+  content: "\f1e5";
+}
