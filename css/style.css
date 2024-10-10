@@ -5,7 +5,7 @@
 }
 
 .light {
-    --background-image: url("/images/mountainLight.jpg") no-repeat;
+    --background-image: url("../images/mountainLight.jpg") no-repeat;
     --text-primary: #1b1b1b;
     --text-secondary: #4e4e4e;
     --text-active: #858585;
@@ -84,7 +84,7 @@
 }
 
 .dark {
-    --background-image: url("/images/mountainDark.jpg") no-repeat;
+    --background-image: url("../images/mountainDark.jpg") no-repeat;
     --text-primary: #fff;
     --text-secondary: #cdcdcd;
     --text-active: #858585;
