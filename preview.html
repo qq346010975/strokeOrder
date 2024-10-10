@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <title>打印预览</title>
+  <style>
+  html {
+  line-height: 1.15;
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%
+}
+body {
+  margin: 0;
+  transform-origin: top;
+}
+
+article,
+aside,
+footer,
+header,
+nav,
+section {
+  display: block
+}
+
+svg:not(:root) {
+  overflow: hidden
+}
+  
+svg {
+  width: 80px;
+  height: 80px;
+}
+
+svg line {
+  stroke: #DDD;
+}
+
+section {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+}
+
+
+body.A4 .sheet {
+  width: 210mm;
+  height: 296mm;
+  padding: 20mm 20mm;
+  line-height: 0px;
+  overflow: hidden;
+  position: relative;
+  box-sizing: border-box;
+  page-break-after: always;
+}
+
+@media screen {
+  body {
+    background: #e0e0e0
+  }
+
+  .sheet {
+    background: white;
+    box-shadow: 0 .5mm 2mm rgba(0, 0, 0, .3);
+    margin: 5mm auto;
+  }
+}
+@media print {
+  body.A4 {
+    width: 210mm;
+    margin-top: -25mm;
+  }
+}
+
+@page { 
+  size: A4;
+  margin: 0;
+}
+  
+  
+  
+  </style>
+</head>
+<body class="A4">
+  <svg id="templateSvg">
+    <title>方框笔顺合集</title>
+    <defs>
+      <g id="strokeBorder">
+        <desc>米字边框</desc>
+        <line x1="0" y1="0" x2="80" y2="80" stroke-dasharray="4" fill="none" />
+        <line x1="80" y1="0" x2="0" y2="80" stroke-dasharray="4" fill="none" />
+        <line x1="40" y1="0" x2="40" y2="80" stroke-dasharray="4" fill="none" />
+        <line x1="0" y1="40" x2="80" y2="40" stroke-dasharray="4" fill="none" />
+      </g>
+    </defs>
+  </svg>
+
+</body>
+
+</html>
