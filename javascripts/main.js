@@ -1,68 +1,51 @@
-// 定义全局变量
-let animationWriter;
-let quizWriter;
-let scaleValue = 1;
-let strokeObj = { '': [] };
-// 获取要操作的元素
-let items = document.querySelectorAll('div.left-box > ul > li.item');
-let switch_btn = document.querySelector('.switchbtn');
-let current_tag = document.querySelector('.current-tag');
-let handler = document.querySelector('.handler');
-let left_box = document.querySelector('.left-box');
-let hanzi_search = document.querySelector('#hanziSearch');
-let search_btn = document.querySelector('#searchBtn');
-let animation_show_outline = document.querySelector('#animation-show-outline');
-let quiz_show_outline = document.querySelector('#quiz-show-outline');
-let preview_frame = document.querySelector('#previewFrame').contentWindow;
-let preview_line_number = document.querySelector('#line-number');
-let preview_strokes_number = document.querySelector('#strokes-number');
-let preview_copy_content = document.querySelector('#copy-content');
-let copy_print_btn = document.querySelector('#copyPrintBtn');
-let preview_setting_box = document.querySelector('#previewBox');
-let preview_setting_confirm_btn = document.querySelector('#confirmBtn');
-let preview_zoomin_btn = document.querySelector('#previewZoomIn');
-let preview_zoomout_btn = document.querySelector('#previewZoomOut');
-let preview_zoomselect_btn = document.querySelector('#previewZoomSelect');
+// 点击切换页面
+document.querySelectorAll('#navbarNav > ul > li > span').forEach(linkItem => {
+    linkItem.addEventListener('click', _ => {
+        document.querySelectorAll('#navbarNav > ul > li > span').forEach(item => {
+            item.classList.remove('active');
+            document.getElementById(item.ariaLabel).style.display = 'none';
+        });
+        linkItem.classList.add('active');
+        document.getElementById(linkItem.ariaLabel).style.display = 'flex';
+        document.querySelector('#navTitle').innerHTML = linkItem.textContent.trim();
+        document.querySelector('.collapse').classList.remove('show')
+    })
+})
 
+//点击切换主题
+document.querySelector('.switchbtn').addEventListener('click', _ => {
+    const html = document.documentElement;
+    const current_theme = html.getAttribute('data-bs-theme');
+    html.setAttribute('data-bs-theme', current_theme === 'light' ? 'dark' : 'light');
+});
 
-//渲染笔顺
-function renderFanningStrokes(target, strokes) {
-    let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.style.width = '75px';
-    svg.style.height = '75px';
-    // svg.style.border = '1px solid #EEE'
-    svg.style.marginRight = '3px'
-    target.appendChild(svg);
-    let group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-
-    // set the transform property on the g element so the character renders at 75x75
-    let transformData = HanziWriter.getScalingTransform(75, 75);
-    group.setAttributeNS(null, 'transform', transformData.transform);
-    svg.appendChild(group);
-
-    strokes.forEach(strokePath => {
-        let path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttributeNS(null, 'd', strokePath);
-        // style the character paths
-        path.style.fill = '#555';
-        group.appendChild(path);
-    });
-}
-
-//更新汉字
-function updateCharacter() {
+//点击查询笔顺
+document.querySelector('#searchBtn').addEventListener('click', _ => {
+    //清空分步笔顺图解、笔顺动画演示、笔顺描写练习内容
     ['stroke', 'animation', 'quiz'].forEach(demoType => {
         document.getElementById(`${demoType}-target`).innerHTML = "";
     });
     let character = document.getElementById('hanziSearch').value;
     HanziWriter.loadCharacterData(character).then(charData => {
         let strokeTarget = document.getElementById('stroke-target');
-        let maxStrokeWidth = (window.screen.width - 150) * 0.8 - 100;
-        let strokeWidth = (charData.strokes.length + 1) * 75;
-        strokeTarget.style.width = (maxStrokeWidth > strokeWidth ? strokeWidth : maxStrokeWidth) + 'px';
         for (let i = 0; i < charData.strokes.length; i++) {
             let strokesPortion = charData.strokes.slice(0, i + 1);
-            renderFanningStrokes(strokeTarget, strokesPortion);
+            let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            strokeTarget.appendChild(svg);
+            let group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+            // set the transform property on the g element so the character renders at 75x75
+            let transformData = HanziWriter.getScalingTransform(75, 75);
+            group.setAttributeNS(null, 'transform', transformData.transform);
+            svg.appendChild(group);
+
+            strokesPortion.forEach(strokePath => {
+                let path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttributeNS(null, 'd', strokePath);
+                // style the character paths
+                path.style.fill = '#555';
+                group.appendChild(path);
+            });
         }
     });
     animationWriter = HanziWriter.create('animation-target', character, {
@@ -83,15 +66,28 @@ function updateCharacter() {
     // for easier debugging
     window.animationWriter = animationWriter;
     window.quizWriter = quizWriter;
-}
-updateCharacter();
+})
 
 //渲染边框
-function genBorder() {
-    preview_frame.document.querySelectorAll('section').forEach(el => el.remove())    
+let preview_frame = document.querySelector('#previewFrame').contentWindow;
+let preview_line_number = document.querySelector('#line-number');
+let preview_strokes_number = document.querySelector('#strokes-number');
+let preview_copy_content = document.querySelector('#copy-content');
+let copy_print_btn = document.querySelector('#copyPrintBtn');
+let preview_setting_box = document.querySelector('#previewBox');
+let preview_setting_confirm_btn = document.querySelector('#confirmBtn');
+let preview_zoomin_btn = document.querySelector('#previewZoomIn');
+let preview_zoomout_btn = document.querySelector('#previewZoomOut');
+let preview_zoomselect_btn = document.querySelector('#previewZoomSelect');
+function genBorder(strokeArry = []) {
+    preview_frame.document.querySelectorAll('section').forEach(el => el.remove())
     const lettersSet = + preview_line_number.value;
     const strokeSet = + preview_strokes_number.value;
-    const content = preview_copy_content.value.split('').filter(letterItem => letterItem in strokeObj );
+    const content = strokeArry.length == 0 ? '' : strokeArry.map(item => item.letter);
+    const strokeObj = strokeArry.reduce((obj, item) => {
+        obj[item.letter] = item.storks;
+        return obj;
+    }, { '': [] })
     /*
     每个格子分为两部分：边框+文字；
     每个文字有四种状态：
@@ -119,7 +115,7 @@ function genBorder() {
     4. 未选择|NAN
     全部格子是无文字。
     */
-   let letterArrays = [Array(96).fill(['', 0])];
+    let letterArrays = [Array(96).fill(['', 0])];
     switch (lettersSet) {
         case 0:
             letterArrays = content.map(letterItem => {
@@ -182,7 +178,7 @@ function genBorder() {
             let letter_group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             let letter_color = letterSet === 200 ? '#ddd' : '#555';
             let letter_strokes = strokeObj[letterItem];
-            if (letter_strokes.length===0) {
+            if (letter_strokes.length === 0) {
                 let letter_text = preview_frame.document.createElement('text');
                 letter_text.style.color = letter_color;
                 letter_text.innerHTML = letterItem;
@@ -200,26 +196,26 @@ function genBorder() {
 
             // 上面线条
             let topLine = preview_frame.document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            [['x1','0'],['y1','0'],['x2','80'],['y2','0']].forEach(attributes => {
+            [['x1', '0'], ['y1', '0'], ['x2', '80'], ['y2', '0']].forEach(attributes => {
                 topLine.setAttributeNS(null, ...attributes);
-                topLine.setAttributeNS(null,'stroke-width', numb < 8 ? 5 : 3);
+                topLine.setAttributeNS(null, 'stroke-width', numb < 8 ? 5 : 3);
             });
             svg.appendChild(topLine);
 
             // 左面线条            
             let leftLine = preview_frame.document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            [['x1','0'],['y1','0'],['x2','0'],['y2','80']].forEach(attributes => {
+            [['x1', '0'], ['y1', '0'], ['x2', '0'], ['y2', '80']].forEach(attributes => {
                 leftLine.setAttributeNS(null, ...attributes);
-                leftLine.setAttributeNS(null,'stroke-width', numb % 8 === 0 ? 5 : 3);
+                leftLine.setAttributeNS(null, 'stroke-width', numb % 8 === 0 ? 5 : 3);
             });
             svg.appendChild(leftLine);
 
             // 右面线条
             if (numb % 8 === 7) {
                 let rightLine = preview_frame.document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                [['x1','80'],['y1','0'],['x2','80'],['y2','80']].forEach(attributes => {
+                [['x1', '80'], ['y1', '0'], ['x2', '80'], ['y2', '80']].forEach(attributes => {
                     rightLine.setAttributeNS(null, ...attributes);
-                    rightLine.setAttributeNS(null,'stroke-width', 5);
+                    rightLine.setAttributeNS(null, 'stroke-width', 5);
                 });
                 svg.appendChild(rightLine);
             }
@@ -227,9 +223,9 @@ function genBorder() {
             // 下面线条
             if (numb > 87) {
                 let bottomLine = preview_frame.document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                [['x1','0'],['y1','80'],['x2','80'],['y2','80']].forEach(attributes => {
+                [['x1', '0'], ['y1', '80'], ['x2', '80'], ['y2', '80']].forEach(attributes => {
                     bottomLine.setAttributeNS(null, ...attributes);
-                    bottomLine.setAttributeNS(null,'stroke-width', 5);
+                    bottomLine.setAttributeNS(null, 'stroke-width', 5);
                 });
                 svg.appendChild(bottomLine);
             }
@@ -238,77 +234,26 @@ function genBorder() {
             borderSection.appendChild(svg);
         });
     });
-}
-
-// 为每一个li设置点击事件
-items.forEach((item, itemIndex) => {
-    item.addEventListener('click', e => {
-        items.forEach((theItem, theItemIndex) => {
-            document.querySelector('div[aria-labelledby="default"]').style.display = 'none';
-            if (theItemIndex === itemIndex) {
-                theItem.classList.add('active');
-                current_tag.innerText = theItem.innerText;
-                document.querySelector(`div[aria-labelledby="item${theItemIndex}"]`).style.display = 'block';
-            } else {
-                theItem.classList.remove('active');
-                document.querySelector(`div[aria-labelledby="item${theItemIndex}"]`).style.display = 'none';
-            };
-
-        });
-    });
-})
-
-//点击切换主题
-switch_btn.addEventListener('click', e => {
-    let current_theme = document.documentElement.className;
-    document.documentElement.className = current_theme === 'light' ? 'dark' : 'light';
-})
-
-
-//点击显示/折叠左面板
-handler.addEventListener('click', function () {
-    if (!this.classList.contains('close')) {
-        left_box.style.width = 0;
-        this.classList.add('close');
-    } else {
-        left_box.style.width = 250 + 'px';
-        this.classList.remove('close');
-    }
-})
-
-//回车更换汉字
-hanzi_search.addEventListener('keydown', event => {
-    if (event.keyCode !== 13) {
-        return
-    }
-    updateCharacter();
-});
-
-//点击是否显示轮廓
-animation_show_outline.addEventListener('click', event => {
-    let method = document.getElementById('animation-show-outline').checked ? 'showOutline' : 'hideOutline';
-    animationWriter[method]();
-});
-quiz_show_outline.addEventListener('click', event => {
-    let method = document.getElementById('quiz-show-outline').checked ? 'showOutline' : 'hideOutline';
-    quizWriter[method]();
-});
-
-
+};
 //生成字帖
 copy_print_btn.addEventListener('click', event => {
     preview_frame.print()
 })
 
+//点击缩小
 preview_zoomin_btn.addEventListener('click', event => {
     scaleValue -= 0.2;
     scaleValue = scaleValue < 0.1 ? 0.1 : scaleValue;
     preview_frame.document.querySelector('body').style.transform = `scale(${scaleValue})`
 })
+
+//点击放大
 preview_zoomout_btn.addEventListener('click', event => {
     scaleValue += 0.2;
     preview_frame.document.querySelector('body').style.transform = `scale(${scaleValue})`
 })
+
+//点击缩放选项
 preview_zoomselect_btn.addEventListener('change', event => {
     let frameWidth = preview_frame.innerWidth;
     let frameHeight = preview_frame.innerHeight;
@@ -327,6 +272,7 @@ preview_zoomselect_btn.addEventListener('change', event => {
     preview_frame.document.querySelector('body').style.transform = `scale(${scaleValue})`
 })
 
+//切换字帖选项
 preview_line_number.addEventListener('change', event => {
     preview_strokes_number.options.length = 0;
     let lettersSet = + preview_line_number.value;
@@ -347,25 +293,17 @@ preview_line_number.addEventListener('change', event => {
     optionsetArray.forEach(optionset => preview_strokes_number.options.add(new Option(...optionset)));
 });
 
-preview_copy_content.addEventListener('change', event => {
-    preview_setting_confirm_btn.disabled = true;
-    [...preview_copy_content.value].forEach(letterItem => {
-        HanziWriter.loadCharacterData(letterItem)
+//点击确认按钮
+preview_setting_confirm_btn.addEventListener('click', async event => {
+    const currentStokeArray = await Promise.all([...preview_copy_content.value].map(letterItem => {
+        return HanziWriter.loadCharacterData(letterItem)
             .then(charData => {
-                strokeObj[letterItem] = charData.strokes;
+                return { 'letter': letterItem, 'storks': charData.strokes }
             })
-            .catch(err => {
+            .catch(_ => {
                 console.log(`【${letterItem}】不存在`)
             })
-            .finally(_ => setTimeout(_ => preview_setting_confirm_btn.disabled = false, 1000))
-    })
-
-})
-
-
-preview_setting_confirm_btn.addEventListener('click', event => {
-    genBorder();
+    }));
+    genBorder(currentStokeArray);
     document.querySelector('#previewBox').style.display = 'none'
 })
-
-
