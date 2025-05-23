@@ -87,7 +87,7 @@ function genBorder(strokeArry = []) {
     const strokeObj = strokeArry.reduce((obj, item) => {
         obj[item.letter] = item.storks;
         return obj;
-    }, { '': [] })
+    }, {'':[]})
     /*
     每个格子分为两部分：边框+文字；
     每个文字有四种状态：
@@ -174,7 +174,6 @@ function genBorder(strokeArry = []) {
             let useTag = preview_frame.document.createElementNS('http://www.w3.org/2000/svg', 'use');
             useTag.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#strokeBorder');
             [letterItem, letterSet] = allLetterArray[96 * sheetNumb + numb];
-            // console.log(letterItem, letterSet)
             let letter_group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             let letter_color = letterSet === 200 ? '#ddd' : '#555';
             let letter_strokes = strokeObj[letterItem];
@@ -300,10 +299,10 @@ preview_setting_confirm_btn.addEventListener('click', async event => {
             .then(charData => {
                 return { 'letter': letterItem, 'storks': charData.strokes }
             })
-            .catch(_ => {
+            .catch(_=> {
                 console.log(`【${letterItem}】不存在`)
             })
     }));
-    genBorder(currentStokeArray);
+    genBorder(currentStokeArray.filter(item2 => item2 !== undefined));
     document.querySelector('#previewBox').style.display = 'none'
 })
