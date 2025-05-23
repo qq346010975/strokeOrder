@@ -83,7 +83,7 @@ function genBorder(strokeArry = []) {
     preview_frame.document.querySelectorAll('section').forEach(el => el.remove())
     const lettersSet = + preview_line_number.value;
     const strokeSet = + preview_strokes_number.value;
-    const content = strokeArry.length == 0 ? '' : strokeArry.map(item => item.letter);
+    const content = strokeArry.length == 0 ? [''] : strokeArry.map(item => item.letter);
     const strokeObj = strokeArry.reduce((obj, item) => {
         obj[item.letter] = item.storks;
         return obj;
