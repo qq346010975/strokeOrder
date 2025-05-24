@@ -1,3 +1,42 @@
+// 创建全局的弹窗容器
+let toastContainer;
+        
+function initToastContainer() {
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container';
+        document.body.appendChild(toastContainer);
+    }
+}
+
+function showToast(message) {
+    // 确保容器已初始化
+    initToastContainer();
+    
+    // 创建消息元素
+    const toast = document.createElement('div');
+    toast.className = 'toast-message';
+    toast.textContent = message;
+    
+    // 添加到容器顶部（新消息显示在最上面）
+    toastContainer.insertBefore(toast, toastContainer.firstChild);
+    
+    // 显示动画
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    // 2秒后开始隐藏
+    setTimeout(() => {
+        toast.classList.remove('show');
+        // 等待动画完成后移除元素
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 300);
+    }, 2000);
+}
+
+
 // 点击切换页面
 document.querySelectorAll('#navbarNav > ul > li > span').forEach(linkItem => {
     linkItem.addEventListener('click', _ => {
@@ -19,19 +58,42 @@ document.querySelector('.switchbtn').addEventListener('click', _ => {
     html.setAttribute('data-bs-theme', current_theme === 'light' ? 'dark' : 'light');
 });
 
+//同步获取笔画
+async function getCharacterData(characterArray){
+    const characterDataArray = await Promise.all(characterArray.map(letterItem => {
+        return HanziWriter.loadCharacterData(letterItem)
+            .then(charData => {
+                return { 'letter': letterItem, 'storks': charData.strokes }
+            })
+            .catch(_=> {
+                showToast(`【${letterItem}】不存在`);
+            })
+    }));
+    return characterDataArray.filter(item => item !== undefined)
+}
+
 //点击查询笔顺
-document.querySelector('#searchBtn').addEventListener('click', _ => {
+async function renderOrder(characterArray) {
     //清空分步笔顺图解、笔顺动画演示、笔顺描写练习内容
     ['stroke', 'animation', 'quiz'].forEach(demoType => {
         document.getElementById(`${demoType}-target`).innerHTML = "";
-    });
-    let character = document.getElementById('hanziSearch').value;
-    HanziWriter.loadCharacterData(character).then(charData => {
+        document.getElementById(`${demoType}-select`).innerHTML = "<option> 请选择字符</option>";
+    });    
+    // 
+    const currentCharacterDataArray = await getCharacterData(characterArray);
+    currentCharacterDataArray.forEach(characterData=>{        
+        const {letter, storks} = characterData;
+        document.querySelector('#stroke-select').add(new Option(letter, letter));
+        // 分步笔顺图解
         let strokeTarget = document.getElementById('stroke-target');
-        for (let i = 0; i < charData.strokes.length; i++) {
-            let strokesPortion = charData.strokes.slice(0, i + 1);
+        let strokeEl = document.createElement('div');
+        strokeEl.id = letter;
+        let svg1 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        for (let i = 0; i < storks.length; i++) {
+            let strokesPortion = storks.slice(0, i + 1);
             let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            strokeTarget.appendChild(svg);
+            strokeTarget.appendChild(strokeEl);
+            strokeEl.appendChild(svg);
             let group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
             // set the transform property on the g element so the character renders at 75x75
@@ -45,28 +107,62 @@ document.querySelector('#searchBtn').addEventListener('click', _ => {
                 // style the character paths
                 path.style.fill = '#555';
                 group.appendChild(path);
-            });
-        }
+            });            
+            svg1.innerHTML = svg.innerHTML;
+        };
+        strokeEl.insertBefore(svg1, strokeEl.firstElementChild);
+        //笔顺动画演示
+        document.querySelector('#animation-select').add(new Option(letter, letter));
+        //笔顺描写练习
+        document.querySelector('#quiz-select').add(new Option(letter, letter));
+
+    })
+
+};
+
+document.querySelector('#hanziSearch').addEventListener('change',function(){
+    document.querySelector('.input-wrap').style.width = parseInt(this.value.length) * 2 + 8 + 'em';
+    renderOrder(this.value.split(''));
+})
+
+document.querySelector('#searchBtn').addEventListener('click',_=>{
+    renderOrder(document.querySelector('#hanziSearch').value.split(''));
+})
+
+document.querySelector('#stroke-select').addEventListener('change',function(){    
+    Array.from(this.options).forEach(optionEl=>{
+        if (optionEl.value !== '请选择字符') {
+            document.querySelector(`#${optionEl.value}`).style.display = this.value === '请选择字符' ? "" : 'none';
+        }        
     });
-    animationWriter = HanziWriter.create('animation-target', character, {
+    if (this.value !== '请选择字符'){
+        document.querySelector(`#${this.value}`).style.display = '';
+    }
+});
+
+
+document.querySelector('#animation-select').addEventListener('change',function(){
+    document.getElementById('animation-target').innerHTML = "";
+    window.animationWriter = HanziWriter.create('animation-target', this.value, {
         width: 300,
         height: 300,
         showOutline: document.getElementById('animation-show-outline').checked,
         showCharacter: false
     });
-    quizWriter = HanziWriter.create('quiz-target', character, {
+});
+
+document.querySelector('#quiz-select').addEventListener('change',function(){
+    document.getElementById('quiz-target').innerHTML = "";
+    window.quizWriter = HanziWriter.create('quiz-target', this.value, {
         width: 300,
         height: 300,
         showOutline: document.getElementById('quiz-show-outline').checked,
         showCharacter: false,
         showHintAfterMisses: 1
     });
-    quizWriter.quiz();
-
-    // for easier debugging
-    window.animationWriter = animationWriter;
-    window.quizWriter = quizWriter;
+    window.quizWriter.quiz();
 })
+
 
 //渲染边框
 let preview_frame = document.querySelector('#previewFrame').contentWindow;
@@ -294,15 +390,7 @@ preview_line_number.addEventListener('change', event => {
 
 //点击确认按钮
 preview_setting_confirm_btn.addEventListener('click', async event => {
-    const currentStokeArray = await Promise.all([...preview_copy_content.value].map(letterItem => {
-        return HanziWriter.loadCharacterData(letterItem)
-            .then(charData => {
-                return { 'letter': letterItem, 'storks': charData.strokes }
-            })
-            .catch(_=> {
-                console.log(`【${letterItem}】不存在`)
-            })
-    }));
+    const currentStokeArray = await getCharacterData([...preview_copy_content.value]);
     genBorder(currentStokeArray.filter(item2 => item2 !== undefined));
     document.querySelector('#previewBox').style.display = 'none'
 })
