@@ -74,7 +74,7 @@
                     <div class="input-wrap">
                         <div class="input-group">
                             <input id="hanziSearch" type="text" class="form-control form-control-lg"
-                                placeholder="请输入汉字">
+                                placeholder="请输入汉字" autocomplete="off">
                             <button id="searchBtn" class="btn btn-primary btn-lg" type="button">查询</button>
                         </div>
                     </div>
@@ -84,6 +84,9 @@
                         <h3 class="border-bottom pb-2">分步笔顺图解</h3>
                         <div class="card">
                             <div class="card-body">
+                                <select name="strokeSelect" id="stroke-select">
+                                    <option> 请选择字符</option>
+                                </select>
                                 <div class="demo-target" id="stroke-target"></div>
                             </div>
                         </div>
@@ -95,6 +98,9 @@
                         <h3 class="border-bottom pb-2">笔顺动画演示</h3>
                         <div class="card">
                             <div class="card-body text-center">
+                                <select name="animationSelect" id="animation-select">
+                                    <option> 请选择字符</option>
+                                </select>
                                 <div class="demo-target" id="animation-target"></div>
                                 <div class="checkbox">
                                     <label>
@@ -110,6 +116,9 @@
                         <h3 class="border-bottom pb-2">笔顺描写练习</h3>
                         <div class="card">
                             <div class="card-body text-center">
+                                <select name="quizSelect" id="quiz-select">
+                                    <option> 请选择字符</option>
+                                </select>
                                 <div class="demo-target" id="quiz-target"></div>
                                 <div class="checkbox">
                                     <label>
