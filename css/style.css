@@ -312,6 +312,7 @@ span.nav-link {
     border-radius: 4px;
     cursor: pointer;
     width: 30%;
+    min-width: 7em;
 }
 
 #confirmBtn {
